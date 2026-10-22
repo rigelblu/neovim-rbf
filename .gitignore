@@ -86,3 +86,7 @@ tags
 /contrib/result-*
 
 CMakeUserPresets.json
+
+# rb
+.rb-drive-remote
+.rb-drive-public-share
