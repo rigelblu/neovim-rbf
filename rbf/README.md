@@ -12,7 +12,7 @@ This is Tom's local editor build, with his existing configuration and plugins. I
 
 None. Upstream merged [PR #42370](https://github.com/neovim/neovim/pull/42370) on 2026-10-31, so the fork's base, upstream master `1332ed9027`, already has the fix the fork used to carry: text hidden by persistent extmarks stops taking screen width when lines wrap, so a long hidden link target no longer leaves a blank row under its label. It also has upstream's follow-up fixes, including [PR #42634](https://github.com/neovim/neovim/pull/42634) for the `conceal_line` "Index out of bounds" error.
 
-The stack is upstream master `1332ed9027` → our setup, measurement scripts and release files. Bookmark `nv-2` names the tip. Outside `rbf/`, the tree differs from upstream's only in `.gitignore`, `AGENTS.md`, `metadata.toml` and the `rb-drive` link.
+The stack is upstream master `1332ed9027` → our setup, measurement scripts and release files. Bookmark `tom-rigelblu/nv-2` names the tip. Outside `rbf/`, the tree differs from upstream's only in `.gitignore`, `AGENTS.md`, `metadata.toml` and the `rb-drive` link.
 
 `:syntax`, `matchadd()` and ephemeral conceal still wrap as upstream documents. Tab stops after hidden text are unchanged. ymd and typeless need no runtime changes. ymd's and typeless's suites pass on this build as they did on `0.1.0`.
 
@@ -20,13 +20,13 @@ The stack is upstream master `1332ed9027` → our setup, measurement scripts and
 
 Use macOS on Apple silicon with CMake, Ninja, the Xcode toolchain and Homebrew gettext. Run builds at utility priority. The example below assumes a jj workspace at `$EXTERNAL_DRIVE/src/worktrees/neovim-rbf/nv-2`. Run Git commands from the main colocated checkout, never from a jj workspace.
 
-1. Reuse that workspace, or create it from the main checkout with `jj workspace add "$EXTERNAL_DRIVE/src/worktrees/neovim-rbf/nv-2" -r nv-2`. Set `W` to the workspace and `MAIN` to the main checkout.
+1. Reuse that workspace, or create it from the main checkout with `jj workspace add "$EXTERNAL_DRIVE/src/worktrees/neovim-rbf/nv-2" -r tom-rigelblu/nv-2`. Set `W` to the workspace and `MAIN` to the main checkout.
 2. Keep `rbf/VERSION`, this README and the changelog committed at the tip before verification. Then obtain the build id:
    ```sh
-   ID=$(git -C "$MAIN" rev-parse --short=10 nv-2)
+   ID=$(git -C "$MAIN" rev-parse --short=10 tom-rigelblu/nv-2)
    cd "$W"
    ```
-   This is the hash shown after `+g` in `nvim --version`. After verifying that build, a later change may land only if it touches nothing outside rbf/ — `git diff --stat <verified tip> nv-2 -- . ':(exclude)rbf'` must print nothing — and then the new tip is rebuilt and installed.
+   This is the hash shown after `+g` in `nvim --version`. After verifying that build, a later change may land only if it touches nothing outside rbf/ — `git diff --stat <verified tip> tom-rigelblu/nv-2 -- . ':(exclude)rbf'` must print nothing — and then the new tip is rebuilt and installed.
 3. Build the dependencies and test binary:
    ```sh
    taskpolicy -c utility make CMAKE_BUILD_TYPE=RelWithDebInfo
