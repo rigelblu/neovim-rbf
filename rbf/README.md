@@ -14,7 +14,7 @@ None. Upstream merged [PR #42370](https://github.com/neovim/neovim/pull/42370) o
 
 The stack is upstream master `1332ed9027` → our setup, measurement scripts and release files. Bookmark `tom-rigelblu/nv-2` names the tip. Outside `rbf/`, the tree differs from upstream's only in `.gitignore`, `AGENTS.md`, `metadata.toml` and the `rb-drive` link.
 
-`:syntax`, `matchadd()` and ephemeral conceal still wrap as upstream documents. Tab stops after hidden text are unchanged. ymd and typeless need no runtime changes. ymd's and typeless's suites pass on this build as they did on `0.1.0`.
+`:syntax`, `matchadd()` and ephemeral conceal still wrap as upstream documents. Tab stops after hidden text are unchanged. ymd and typeless need no runtime changes. ymd's and typeless's suites passed on 0.1.1 as they did on `0.1.0`. typeless's `test-render.lua` crashes now and then (SIGBUS or SIGSEGV, about 1 run in 20), on 0.1.0 as well.
 
 # 🔵⋯ Build and install
 
@@ -51,7 +51,7 @@ Use macOS on Apple silicon with CMake, Ninja, the Xcode toolchain and Homebrew g
    This replaces the link atomically. Tom's login PATH places `~/.local/bin` first, `~/local/bin` before `~/homebrew/bin`. Keep the name `nvim` free in `~/.local/bin`.
 7. Check a new login shell: `zsh -lic 'command -v nvim; nvim --version | head -2'`. It should report `~/local/bin/nvim`, the tip hash, and `Build type: Release`.
 
-To go back to the previous fork build, point the link at its prefix again, for example `ln -sf ~/.local/nvim-rbf/2cb20f366b/bin/nvim ~/local/bin/nvim.new && mv -f ~/local/bin/nvim.new ~/local/bin/nvim && rehash`. To go back to Homebrew, `brew link neovim && rm ~/local/bin/nvim && rehash`. New sessions start Homebrew's `nvim`, whatever version it is; existing sessions keep their build. Swap files recover with either build. Remove an old install prefix only after `lsof +D <prefix>` shows nothing using it.
+To go back to the previous fork build, point the link at its prefix again, for example `ln -sf ~/.local/nvim-rbf/2cb20f366b/bin/nvim ~/local/bin/nvim.new && mv -f ~/local/bin/nvim.new ~/local/bin/nvim && rehash`. That build has the `conceal_line` "Index out of bounds" error 0.1.1 fixes. To go back to Homebrew, `brew link neovim && rm ~/local/bin/nvim && rehash`. New sessions start Homebrew's `nvim`, whatever version it is; existing sessions keep their build. Swap files recover with either build. Remove an old install prefix only after `lsof +D <prefix>` shows nothing using it.
 
 If the wrong binary answers, run `rehash` and `command -v nvim` in a login shell. If runtime startup fails, `unset VIMRUNTIME`: build-tree tests require `VIMRUNTIME="$W/runtime"`, while an installed binary finds its own runtime. ymd itself still needs the SSD, just as it does with Homebrew's `nvim`.
 
