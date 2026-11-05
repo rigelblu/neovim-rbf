@@ -7,6 +7,13 @@ Flavour releases use `rbf/VERSION`; upstream's release history stays in the root
 # 🔵⋯ [Unreleased]
 (empty)
 
+# 🔵⋯ v0.1.1 (2026-11-04)
+
+## 🟠⋯ Fixed for End Users
+- 2026-11-04 - fix | edit a concealed buffer without an "Index out of bounds" error when lines are deleted or a plugin shrinks it. Moves the base to upstream master `1332ed9027`, which merged [PR #42370](https://github.com/neovim/neovim/pull/42370) and fixed its `conceal_line` error in [PR #42634](https://github.com/neovim/neovim/pull/42634). The fork now carries no upstream commits.
+
+Deleting a markdown file's last line, or a notification redraw, no longer stops you at a stack trace and a "Press ENTER" prompt. Links still read one row per entry. Files, options and config stay compatible.
+
 # 🔵⋯ v0.1.0 (2026-10-22)
 
 ## 🟠⋯ Fixed for End Users

@@ -6,27 +6,27 @@ neovim-rbf runs upstream Neovim's own unreleased fixes when our plugins need the
 
 # 🔵⋯ Use
 
-This is Tom's local editor build, with his existing configuration and plugins. It is not a public binary, a Homebrew formula, or the Neovim 0.13 release. Issues and contributions concerning the carried fix belong with upstream's PR.
+This is Tom's local editor build, with his existing configuration and plugins. It is not a public binary, a Homebrew formula, or the Neovim 0.13 release. Issues with editor behaviour belong upstream.
 
 # 🔵⋯ Current carry
 
-Upstream [PR #42370](https://github.com/neovim/neovim/pull/42370), four commits pinned at head `624dfb6136`, makes text hidden by persistent extmarks stop taking screen width when lines wrap. A long hidden link target no longer leaves a blank row under its label. It also makes screen positions and mouse clicks follow the drawing.
+None. Upstream merged [PR #42370](https://github.com/neovim/neovim/pull/42370) on 2026-10-31, so the fork's base, upstream master `1332ed9027`, already has the fix the fork used to carry: text hidden by persistent extmarks stops taking screen width when lines wrap, so a long hidden link target no longer leaves a blank row under its label. It also has upstream's follow-up fixes, including [PR #42634](https://github.com/neovim/neovim/pull/42634) for the `conceal_line` "Index out of bounds" error.
 
-The stack is upstream master `d714648b8e` → our setup, measurement scripts and release files → the four carried commits. Bookmark `nv-1` names the tip. The LSP completion conflict resolutions retain master's plaintext documentation behaviour and the PR's markdown screen expectations; `runtime/lua/vim/lsp/completion.lua` is byte-identical to master's.
+The stack is upstream master `1332ed9027` → our setup, measurement scripts and release files. Bookmark `nv-2` names the tip. Outside `rbf/`, the tree differs from upstream's only in `.gitignore`, `AGENTS.md`, `metadata.toml` and the `rb-drive` link.
 
-`:syntax`, `matchadd()` and ephemeral conceal still wrap as upstream documents. Tab stops after hidden text are unchanged. ymd and typeless need no runtime changes. The two stale ymd layout expectations were updated; both affected suites pass on the fork and Homebrew.
+`:syntax`, `matchadd()` and ephemeral conceal still wrap as upstream documents. Tab stops after hidden text are unchanged. ymd and typeless need no runtime changes. ymd's and typeless's suites pass on this build as they did on `0.1.0`.
 
 # 🔵⋯ Build and install
 
-Use macOS on Apple silicon with CMake, Ninja, the Xcode toolchain and Homebrew gettext. Run builds at utility priority. The example below assumes a jj workspace at `$EXTERNAL_DRIVE/src/worktrees/neovim-rbf/nv-1`. Run Git commands from the main colocated checkout, never from a jj workspace.
+Use macOS on Apple silicon with CMake, Ninja, the Xcode toolchain and Homebrew gettext. Run builds at utility priority. The example below assumes a jj workspace at `$EXTERNAL_DRIVE/src/worktrees/neovim-rbf/nv-2`. Run Git commands from the main colocated checkout, never from a jj workspace.
 
-1. Reuse that workspace, or create it from the main checkout with `jj workspace add "$EXTERNAL_DRIVE/src/worktrees/neovim-rbf/nv-1" -r nv-1`. Set `W` to the workspace and `MAIN` to the main checkout.
-2. Keep `rbf/VERSION`, this README and the changelog committed beneath the carry before verification. Then obtain the build id:
+1. Reuse that workspace, or create it from the main checkout with `jj workspace add "$EXTERNAL_DRIVE/src/worktrees/neovim-rbf/nv-2" -r nv-2`. Set `W` to the workspace and `MAIN` to the main checkout.
+2. Keep `rbf/VERSION`, this README and the changelog committed at the tip before verification. Then obtain the build id:
    ```sh
-   ID=$(git -C "$MAIN" rev-parse --short=10 nv-1)
+   ID=$(git -C "$MAIN" rev-parse --short=10 nv-2)
    cd "$W"
    ```
-   This is the hash shown after `+g` in `nvim --version`. After verifying that build, a change may still land beneath the carry only if it touches nothing outside rbf/ — `git diff --stat <verified tip> nv-1 -- . ':(exclude)rbf'` must print nothing — and then the new tip is rebuilt and installed.
+   This is the hash shown after `+g` in `nvim --version`. After verifying that build, a later change may land only if it touches nothing outside rbf/ — `git diff --stat <verified tip> nv-2 -- . ':(exclude)rbf'` must print nothing — and then the new tip is rebuilt and installed.
 3. Build the dependencies and test binary:
    ```sh
    taskpolicy -c utility make CMAKE_BUILD_TYPE=RelWithDebInfo
@@ -40,7 +40,7 @@ Use macOS on Apple silicon with CMake, Ninja, the Xcode toolchain and Homebrew g
    taskpolicy -c utility cmake --install build-release
    ```
    Each build has its own prefix, so open sessions retain their matching runtime. The Release build is used daily; functional tests use RelWithDebInfo. typeless exposes a pre-existing upstream assertion in the latter.
-5. Once, build the fixed oracle without the carry. From the main checkout, `jj workspace add "$EXTERNAL_DRIVE/src/worktrees/neovim-rbf/nv-1-oracle" -r d714648b8e`. In that workspace run `taskpolicy -c utility make deps`, then repeat step 4 with its own `.deps/usr` and `-DCMAKE_INSTALL_PREFIX="$HOME/.local/nvim-rbf/oracle-d714648b8e"`.
+5. Once, build the oracle: upstream master `d714648b8e`, from before #42370 merged, which still draws blank rows under hidden text. The measurement needs a build that counts more than 0. From the main checkout, `jj workspace add "$EXTERNAL_DRIVE/src/worktrees/neovim-rbf/nv-1-oracle" -r d714648b8e`. In that workspace run `taskpolicy -c utility make deps`, then repeat step 4 with its own `.deps/usr` and `-DCMAKE_INSTALL_PREFIX="$HOME/.local/nvim-rbf/oracle-d714648b8e"`.
 6. After the human check passes, unlink Homebrew without uninstalling its keg, then activate the verified build:
    ```sh
    brew unlink neovim
@@ -51,15 +51,15 @@ Use macOS on Apple silicon with CMake, Ninja, the Xcode toolchain and Homebrew g
    This replaces the link atomically. Tom's login PATH places `~/.local/bin` first, `~/local/bin` before `~/homebrew/bin`. Keep the name `nvim` free in `~/.local/bin`.
 7. Check a new login shell: `zsh -lic 'command -v nvim; nvim --version | head -2'`. It should report `~/local/bin/nvim`, the tip hash, and `Build type: Release`.
 
-To go back, `brew link neovim && rm ~/local/bin/nvim && rehash`. New sessions start Homebrew's `nvim`, whatever version it is; existing sessions keep their build. Swap files recover with either build. Remove an old install prefix only after `lsof +D <prefix>` shows nothing using it.
+To go back to the previous fork build, point the link at its prefix again, for example `ln -sf ~/.local/nvim-rbf/2cb20f366b/bin/nvim ~/local/bin/nvim.new && mv -f ~/local/bin/nvim.new ~/local/bin/nvim && rehash`. To go back to Homebrew, `brew link neovim && rm ~/local/bin/nvim && rehash`. New sessions start Homebrew's `nvim`, whatever version it is; existing sessions keep their build. Swap files recover with either build. Remove an old install prefix only after `lsof +D <prefix>` shows nothing using it.
 
 If the wrong binary answers, run `rehash` and `command -v nvim` in a login shell. If runtime startup fails, `unset VIMRUNTIME`: build-tree tests require `VIMRUNTIME="$W/runtime"`, while an installed binary finds its own runtime. ymd itself still needs the SSD, just as it does with Homebrew's `nvim`.
 
 # 🔵⋯ Check a base move
 
-The next base move targets the `v0.13.0` tag. At every base move check PR #42370: merged → drop our four carried commits; open → rebase them; closed unmerged → keep carrying while ymd needs it. Drop each carry once upstream merges it. Stop and ask Tom if a rebase conflicts in C. Read the diff again before rebuilding.
+The base is a pinned upstream master commit. It moves to a newer master commit when upstream lands code the fork carries or a fix Tom needs, not only onto a release tag. At every base move, check each carried PR: merged → drop its commits; open → rebase them; closed unmerged → keep carrying while our plugins need it. Stop and ask Tom if a rebase conflicts in C. Read the diff again before rebuilding.
 
-Move the base by hand: `rbf/scripts/upstream-sync.sh` cannot target a tag yet and expects an `upstream` remote this repo does not have. `nv-1~4..nv-1` is exactly the carry in Git revision syntax; abandon those four commits with jj when dropping it.
+With no carry, a base move is `jj duplicate` of the fork's own commits onto the chosen master commit, then a new bookmark. Don't use `rbf/scripts/upstream-sync.sh` for it: it defaults to an upstream `main` branch, which Neovim doesn't have, and even with `UPSTREAM_BRANCH=master` it rebases the current stack in place onto master's tip, not onto a pinned commit.
 
 Run the measurement before installing or switching a new build:
 
@@ -76,7 +76,7 @@ On the measured build only, the script checks that estimate: a line drawn on few
 
 A clean run prints only the oracle summary, the build and file count, and one count per width. Offending `file:line`s appear under their width. Files that cannot be measured fail the run. Exit codes: 0 clean, 1 rows remain or measurement failed, 2 bad arguments, 3 the oracle counted nothing. Running with no arguments prints the full usage with defaults once to stderr and exits 2, with nothing on stdout. `--ymd` is required.
 
-A nonzero result keeps the old build installed. Repeat the check even after upstream merges the fix: its final form may differ.
+A nonzero result keeps the old build installed. Repeat the check at every base move: upstream may change how hidden text wraps.
 
 # 🔵⋯ Versions
 
