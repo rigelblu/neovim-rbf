@@ -102,9 +102,12 @@ function vim.rpcnotify(channel, method, ...) end
 --- Example: see [nvim_exec_lua()]
 ---
 --- @param channel integer
+--- @param opts? table Optional parameters (can be omitted):
+---   - timeout: (integer) Max milliseconds to wait for the response, else raise an error.
 --- @param method string
 --- @param ...? any
-function vim.rpcrequest(channel, method, ...) end
+--- @overload fun(channel: integer, method: string, ...: any): any
+function vim.rpcrequest(channel, opts, method, ...) end
 
 --- Compares strings case-insensitively.
 --- @param a string
@@ -196,6 +199,13 @@ function vim._core.loop_poll(timeout, fast_only) end
 --- @nodoc
 --- Flushes pending UI updates.
 function vim._core.ui_flush() end
+
+--- @nodoc
+--- (C function: `path_with_url()`) Checks if `name` is a URL (not a file path): "deno:/a" and
+--- "fugitive:///a" are URLs, "C:/a" and "mailto:a" are not.
+--- @param name string
+--- @return boolean
+function vim._core.path_is_url(name) end
 
 --- @nodoc
 --- Checks for interrupt, clears it, and consumes input if present.

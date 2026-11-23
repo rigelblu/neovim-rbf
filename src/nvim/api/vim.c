@@ -1758,6 +1758,8 @@ void nvim_set_client_info(uint64_t channel_id, String name, Dict version, String
 /// @param config Properties:
 ///     - detach: (boolean, default: true) Closing the channel does not self-exit Nvim. Nvim
 ///       self-exits when the last `detach=false` |RPC| channel closes. See also |:detach!|.
+///     - trust: (boolean, default: true) Trust the peer: allow its incoming |RPC| |API| calls. Set
+///       to false for untrusted (remote) peers.
 /// @param[out] err Error details, if any
 void nvim_chan_set(uint64_t channel_id, Integer chan, Dict(chan_set) *config, Error *err)
   FUNC_API_SINCE(15) FUNC_API_FAST
@@ -1772,6 +1774,11 @@ void nvim_chan_set(uint64_t channel_id, Integer chan, Dict(chan_set) *config, Er
 
   if (HAS_KEY(config, chan_set, detach)) {
     channel->detach = config->detach;
+  }
+  if (HAS_KEY(config, chan_set, trust)) {
+    channel->rpc.trust = config->trust;
+  }
+  if (HAS_KEY(config, chan_set, detach) || HAS_KEY(config, chan_set, trust)) {
     channel_event(channel, EVENT_CHANINFO);
   }
 }
@@ -1824,6 +1831,7 @@ void nvim__cmdwin_set(String type, Buffer buf, Error *err)
 ///         - "stderr"     stderr of this Nvim instance
 ///         - "socket"     TCP/IP socket or named pipe
 ///         - "job"        Job with communication over its stdio.
+///    - "trust"    (optional) Trust the peer: allow its incoming |RPC| |API| calls. |nvim_chan_set()|
 Dict nvim_get_chan_info(uint64_t channel_id, Integer chan, Arena *arena, Error *err)
   FUNC_API_SINCE(4)
 {
@@ -2200,8 +2208,8 @@ Tuple(Integer, Integer, Buffer, String) nvim_get_mark(String name, Dict(empty) *
 ///
 /// @param str Statusline string (see 'statusline').
 /// @param opts Optional parameters.
-///           - fillchar: (string) Character to fill blank spaces in the statusline (see
-///                                'fillchars'). Treated as single-width even if it isn't.
+///           - fillchar: (string) Single-width character to fill blank spaces
+///                                in the statusline (see 'fillchars').
 ///           - highlights: (boolean) Return highlight information.
 ///           - maxwidth: (number) Maximum width of statusline.
 ///           - use_statuscol_lnum: (number) Evaluate statuscolumn for this line number instead of statusline.
@@ -2241,14 +2249,14 @@ DictAs(eval_statusline_ret) nvim_eval_statusline(String str, Dict(eval_statuslin
   Window window = opts->winid;
 
   if (HAS_KEY(opts, eval_statusline, fillchar)) {
-    VALIDATE_EXP((*opts->fillchar.data != 0
-                  && ((size_t)utfc_ptr2len(opts->fillchar.data) == opts->fillchar.size)),
-                 "fillchar", "single character", NULL, {
+    StrCharInfo ci = utf_ptr2StrCharInfo(opts->fillchar.data);
+    ClusterInfo cli = utf_ClusterInfo(ci);
+
+    VALIDATE_EXP((*ci.ptr != 0 && *cli.next.ptr == NUL && cli.cells == 1),
+                 "fillchar", "one single-width character", NULL, {
       return result;
     });
-    int c;
-    fillchar = utfc_ptr2schar(opts->fillchar.data, &c);
-    // TODO(bfredl): actually check c is single width
+    fillchar = schar_from_cluster(ci, cli);
   }
 
   int use_bools = (int)opts->use_winbar + (int)opts->use_tabline;

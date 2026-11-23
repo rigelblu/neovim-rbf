@@ -20,6 +20,14 @@ function vim.api.nvim__buf_debug_extmarks(buf, keys, dot) end
 
 --- WARNING: This feature is experimental/unstable.
 ---
+--- Enables (or disables) the `_on_conceal` decoration providers for `buf`: measuring a row runs
+--- them first, so rows not yet drawn are measured concealed. Each enable needs one disable.
+--- @param buf integer
+--- @param enabled boolean
+function vim.api.nvim__buf_set_conceal_provider(buf, enabled) end
+
+--- WARNING: This feature is experimental/unstable.
+---
 --- @param buf integer
 --- @return table<string,any>
 function vim.api.nvim__buf_stats(buf) end
@@ -620,11 +628,12 @@ function vim.api.nvim_buf_line_count(buf) end
 --- @param line integer Line where to place the mark, 0-based. `api-indexing`
 --- @param col integer Column where to place the mark, 0-based. `api-indexing`
 --- @param opts vim.api.keyset.set_extmark? Optional parameters:
---- - conceal: (boolean|string)
----     - string: Single char or empty string, enables conceal similar to `:syn-conceal`.
----       Non-empty char is used as `:syn-cchar`. Highlighted with "hl_group" if
----       defined, else defaults to `hl-Conceal`.
----     - boolean: true is equivalent to "", false removes any existing conceal.
+--- - conceal: (boolean|string) Conceals the range ("extmark-conceal") like
+---   `:syn-conceal`: a single char behaves like `:syn-cchar` (highlighted with
+---   "hl_group", default `hl-Conceal`); empty string or `true` conceals without
+---   cchar; `false` reveals text that lower-priority conceal hides. Lines 'wrap' at
+---   their (non-ephemeral) concealed width (takes precedence over legacy
+---   `:syn-conceal`, `matchadd()`).
 --- - conceal_lines: (string) Line-level conceal. When set to an empty string (other
 ---   values reserved for future use), the lines in the extmark range are not drawn;
 ---   the next non-concealed line is drawn in their place. Requires 'conceallevel' >=
@@ -857,6 +866,8 @@ function vim.api.nvim_chan_send(chan, data) end
 --- @param config vim.api.keyset.chan_set Properties:
 --- - detach: (boolean, default: true) Closing the channel does not self-exit Nvim. Nvim
 ---   self-exits when the last `detach=false` `RPC` channel closes. See also `:detach!`.
+--- - trust: (boolean, default: true) Trust the peer: allow its incoming `RPC` `API` calls. Set
+---   to false for untrusted (remote) peers.
 function vim.api.nvim_chan_set(chan, config) end
 
 --- Clears all autocommands matching the {opts} query. To delete autocmds see `nvim_del_autocmd()`.
@@ -1177,8 +1188,8 @@ function vim.api.nvim_eval(expr) end
 ---
 --- @param str string Statusline string (see 'statusline').
 --- @param opts vim.api.keyset.eval_statusline? Optional parameters.
---- - fillchar: (string) Character to fill blank spaces in the statusline (see
----                      'fillchars'). Treated as single-width even if it isn't.
+--- - fillchar: (string) Single-width character to fill blank spaces
+---                      in the statusline (see 'fillchars').
 --- - highlights: (boolean) Return highlight information.
 --- - maxwidth: (number) Maximum width of statusline.
 --- - use_statuscol_lnum: (number) Evaluate statuscolumn for this line number instead of statusline.
@@ -1336,6 +1347,7 @@ function vim.api.nvim_get_autocmds(opts) end
 ---      - "stderr"     stderr of this Nvim instance
 ---      - "socket"     TCP/IP socket or named pipe
 ---      - "job"        Job with communication over its stdio.
+--- - "trust"    (optional) Trust the peer: allow its incoming |RPC| |API| calls. |nvim_chan_set()|
 function vim.api.nvim_get_chan_info(chan) end
 
 --- Returns the 24-bit RGB value of a `nvim_get_color_map()` color name or

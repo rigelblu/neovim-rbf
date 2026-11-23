@@ -894,7 +894,7 @@ end
 --- If the indexes start from 1 and are contiguous then the array is also a list. |vim.islist()|
 ---
 --- Empty table `{}` is an array, unless it was created by |vim.empty_dict()| or returned as
---- a dict-like |API| or Vimscript result, for example from |rpcrequest()| or |vim.fn|.
+--- a dict-like |API| or Vimscript result, for example from |vim.rpcrequest()| or |vim.fn|.
 ---
 ---@see https://github.com/openresty/luajit2#tableisarray
 ---
@@ -934,7 +934,7 @@ end
 --- |lua-length| calls a "regular array").
 ---
 --- Empty table `{}` is a list, unless it was created by |vim.empty_dict()| or returned as
---- a dict-like |API| or Vimscript result, for example from |rpcrequest()| or |vim.fn|.
+--- a dict-like |API| or Vimscript result, for example from |vim.rpcrequest()| or |vim.fn|.
 ---
 ---@see |vim.isarray()|
 ---
@@ -1570,6 +1570,7 @@ end
 --- @param context vim.context.mods
 --- @param f fun(): R...
 --- @return R...
+--- @overload fun(context: vim.context.mods, f: fun())
 function vim._with(context, f)
   vim.validate('context', context, 'table')
   vim.validate('f', f, 'function')

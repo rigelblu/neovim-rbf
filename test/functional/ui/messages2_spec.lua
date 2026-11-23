@@ -1174,7 +1174,7 @@ describe('messages2', function()
     ]])
   end)
 
-  it('msg window timer does not trigger ModeChanged #40780', function()
+  it('msg window does not trigger ModeChanged #40780, v:count #42292', function()
     exec_lua(function()
       vim.o.messagesopt = 'hit-enter,history:500,progress:c,timeout:50'
       require('vim._core.ui2').enable({ msg = { targets = 'msg' } })
@@ -1186,6 +1186,27 @@ describe('messages2', function()
     t.eq({}, n.eval('g:modechanged'))
     feed('<Esc>')
     t.eq({ { old_mode = 'i', new_mode = 'n' } }, n.eval('g:modechanged'))
+
+    -- print() should not alter v:count and friends. #42292
+    exec_lua(function()
+      vim.keymap.set('n', 'gm', function()
+        print('Hello')
+        _G.count = vim.v.count
+      end)
+    end)
+    feed('2gm')
+    t.eq(2, exec_lua('return _G.count'))
+
+    -- Handler does not clobber the file info message, which is repeated after `i_CTRL-O`.
+    finally(function()
+      os.remove('Xfile')
+    end)
+    t.write_file('Xfile', '')
+    command('set messagesopt& shortmess-=F | edit Xfile')
+    feed('i<C-o>:edit<CR>')
+    n.poke_eventloop()
+    -- Message layout varies with redraw timing.
+    screen:expect({ any = '"Xfile" 0L, 0B', none = 'replacement string' })
   end)
 
   it('configured targets per kind', function()
